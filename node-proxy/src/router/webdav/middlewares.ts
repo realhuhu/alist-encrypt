@@ -6,11 +6,10 @@ import type { Context, Middleware } from 'koa'
 import FlowEnc from '@/utils/flowEnc'
 import { flat } from '@/utils/common'
 import { logger } from '@/common/logger'
-import { getWebdavFileInfo } from '@/utils/webdavClient'
 import { httpClient, httpFlowClient } from '@/utils/httpClient'
 import { cacheFileInfo, deleteFileInfo, getFileInfo } from '@/dao/fileDao'
 import { convertRealName, convertShowName, pathFindPasswd } from '@/utils/cryptoUtil'
-import { cacheWebdavFileInfo, getFileNameForShow } from '@/router/webdav/utils'
+import { cacheWebdavFileInfo, getFileNameForShow, getWebdavFileInfo } from '@/router/webdav/utils'
 import { webdav } from '@/@types/webdav'
 
 const parser = new XMLParser({ removeNSPrefix: true })
@@ -191,7 +190,7 @@ const copyOrMoveHook = async (ctx: Context, state: ProxiedState<WebdavServer | A
   const isDir = await getFileInfo(new URL(state.urlAddr).pathname)
 
   if (isDir) {
-    ctx.req.headers.destination = flat(ctx.req.headers.destination).replace(state.selfHost, state.serverAddr)
+    ctx.req.headers.destination = flat(ctx.req.headers.destination)
     ctx.body = await httpClient({ urlAddr: state.urlAddr, request: ctx.req, response: ctx.res })
     return
   }
@@ -201,7 +200,7 @@ const copyOrMoveHook = async (ctx: Context, state: ProxiedState<WebdavServer | A
 
   const urlAddr = path.dirname(state.urlAddr) + '/' + encodeURI(realFileName)
   const destination = flat(ctx.req.headers.destination)
-  const destinationDir = path.dirname(destination).replace(state.selfHost, state.serverAddr)
+  const destinationDir = path.dirname(destination)
   const destinationRealFileName = convertRealName(passwdInfo.password, passwdInfo.encType, flat(ctx.req.headers.destination))
 
   //将headers.destination与原文件的path转换为未加密状态
@@ -230,12 +229,13 @@ export const webdavHookMiddleware: Middleware<ProxiedState<WebdavServer | AlistS
 
   const encrypted = passwdInfo?.encName
 
+  // 需要把目的url的ip转化为真实ip
+  if ('MOVE,DELETE'.includes(method)) {
+    ctx.req.headers.destination = flat(ctx.req.headers.destination).replace(state.selfHost, state.serverAddr)
+  }
+
   if (!encrypted || !'HEAD,PROPFIND,GET,PUT,COPY,MOVE,DELETE'.includes(method)) {
     logger.info('无需转换的webdav请求')
-
-    if (method === 'MOVE') {
-      ctx.req.headers.destination = flat(ctx.req.headers.destination).replace(state.selfHost, state.serverAddr)
-    }
 
     await httpFlowClient({
       urlAddr: state.urlAddr,

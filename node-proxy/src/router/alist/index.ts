@@ -12,7 +12,7 @@ import { alistServer } from '@/config'
 import { copyOrMoveFileMiddleware } from '@/router/alist/utils'
 import { cacheFileInfo, getFileInfo } from '@/dao/fileDao'
 import { httpClient, httpFlowClient } from '@/utils/httpClient'
-import { bodyParserMiddleware, emptyMiddleware } from '@/middleware/common'
+import { bodyParserMiddleware, emptyMiddleware } from '@/utils/middlewares'
 import { convertRealName, convertShowName, encodeName, pathFindPasswd } from '@/utils/cryptoUtil'
 import type { alist } from '@/@types/alist'
 

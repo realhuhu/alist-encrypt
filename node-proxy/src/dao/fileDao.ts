@@ -26,5 +26,5 @@ export async function getFileInfo(path: string): Promise<alist.FileInfo | Webdav
 export async function deleteFileInfo(path: string) {
   const pathKey = decodeURIComponent(fileInfoTable + path)
   logger.info(`FileDao 删除文件信息: ${pathKey}`)
-  await nedb.datastore.removeMany({ key: pathKey }, {})
+  await nedb.removeValue(pathKey)
 }

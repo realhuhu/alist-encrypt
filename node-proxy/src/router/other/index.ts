@@ -1,27 +1,20 @@
 import Router from 'koa-router'
+
+import nedb from '@/dao/levelDB'
+import FlowEnc from '@/utils/flowEnc'
+import { logger } from '@/common/logger'
+import { pathExec } from '@/utils/cryptoUtil'
 import { flat, preProxy } from '@/utils/common'
 import { alistServer, version } from '@/config'
-import levelDB from '@/dao/levelDB'
-import FlowEnc from '@/utils/flowEnc'
-import { pathExec } from '@/utils/cryptoUtil'
 import { httpClient, httpFlowClient } from '@/utils/httpClient'
-import { logger } from '@/common/logger'
-import { bodyParserMiddleware, compose, proxyHandler } from '@/middleware/common'
-import { downloadMiddleware } from '@/router/other/utils'
+import { bodyParserMiddleware, compose } from '@/utils/middlewares'
+import { downloadMiddleware } from '@/router/other/middlewares'
 
 const otherRouter = new Router()
 
-otherRouter.get<ProxiedState<AlistServer>, EmptyObj>(
-  /^\/d\/*/,
-  compose(bodyParserMiddleware, preProxy(alistServer, false), downloadMiddleware),
-  proxyHandler
-)
+otherRouter.get<ProxiedState<AlistServer>, EmptyObj>(/^\/d\/*/, compose(bodyParserMiddleware, preProxy(alistServer, false)), downloadMiddleware)
 
-otherRouter.get<ProxiedState<AlistServer>, EmptyObj>(
-  /^\/p\/*/,
-  compose(bodyParserMiddleware, preProxy(alistServer, false), downloadMiddleware),
-  proxyHandler
-)
+otherRouter.get<ProxiedState<AlistServer>, EmptyObj>(/^\/p\/*/, compose(bodyParserMiddleware, preProxy(alistServer, false)), downloadMiddleware)
 
 // 修复alist 图标不显示的问题
 otherRouter.all(/^\/images\/*/, compose(bodyParserMiddleware, preProxy(alistServer, false)), async (ctx) => {
@@ -41,7 +34,7 @@ otherRouter.all('/redirect/:key', async (ctx) => {
   const request = ctx.req
   const response = ctx.res
   // 这里还是要encodeURIComponent ，因为http服务器会自动对url进行decodeURIComponent
-  const data = await levelDB.getValue(ctx.params.key)
+  const data = await nedb.getValue(ctx.params.key)
 
   if (data === null) {
     ctx.body = 'no found'

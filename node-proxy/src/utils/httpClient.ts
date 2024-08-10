@@ -4,8 +4,8 @@ import https from 'node:https'
 import crypto from 'crypto'
 import type { Transform } from 'stream'
 
-import { flat } from '@/utils/common'
 import nedb from '@/dao/levelDB'
+import { flat } from '@/utils/common'
 import { logger } from '@/common/logger'
 import { decodeName } from '@/utils/cryptoUtil'
 
@@ -105,7 +105,7 @@ export async function httpClient({
   reqBody?: string
   request: http.IncomingMessage
   response: http.ServerResponse<http.IncomingMessage>
-  onMessage?: typeof defaultOnMessageCallback | null
+  onMessage?: typeof defaultOnMessageCallback
 }): Promise<string> {
   //如果传入ctx.res，那么当代理请求返回响应头时，ctx.res也会立即返回响应头。若不传入则当代理请求完全完成时再手动处理ctx.res
   const { method, headers } = request
@@ -126,7 +126,7 @@ export async function httpClient({
       logger.info(`代理http响应 接收: 状态码 ${message.statusCode}`)
 
       //默认的回调函数，设置response的响应码和响应头
-      onMessage && (await onMessage({ urlAddr, reqBody, request, response, message }))
+      await onMessage({ urlAddr, reqBody, request, response, message })
 
       message.on('data', (chunk) => {
         result += chunk

@@ -74,6 +74,10 @@ class Nedb {
       return null
     }
   }
+
+  async removeValue(key: string): Promise<void> {
+    await this.datastore.removeMany({ key }, {})
+  }
 }
 
 const nedb = new Nedb()

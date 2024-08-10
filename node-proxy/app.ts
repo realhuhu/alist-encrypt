@@ -2,7 +2,6 @@ import path from 'path'
 import http from 'http'
 
 import Koa from 'koa'
-import serve from 'koa-static'
 
 import { port } from '@/config'
 import { logger } from '@/common/logger'
@@ -11,13 +10,12 @@ import otherRouter from '@/router/other'
 import webdavRouter from '@/router/webdav'
 import staticRouter from '@/router/static'
 import webuiRouter from '@/router/webui'
-import { exceptionMiddleware, loggerMiddleware } from '@/middleware/common'
+import { exceptionMiddleware, loggerMiddleware } from './src/utils/middlewares'
 
 const app = new Koa()
 
 app.use(loggerMiddleware)
 app.use(exceptionMiddleware)
-app.use(serve(path.dirname(process.argv[1]), { root: 'public' }))
 app.use(alisRouter.routes())
 app.use(webuiRouter.routes())
 app.use(webdavRouter.routes())

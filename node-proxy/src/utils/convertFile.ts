@@ -2,9 +2,9 @@ import fs from 'fs'
 import path from 'path'
 
 import mkdirp from 'mkdirp'
-import FlowEnc from './flowEnc'
+import FlowEnc from '@/utils/flowEnc'
 import { logger } from '@/common/logger'
-import { encodeName, decodeName } from './cryptoUtil'
+import { encodeName, decodeName } from '@/utils/cryptoUtil'
 
 //找出文件夹下的文件
 export function searchFile(filePath: string) {
