@@ -171,9 +171,16 @@ const putHook = async (ctx: Context, state: ProxiedState<WebdavServer | AlistSer
 
 const deleteHook = async (ctx: Context, state: ProxiedState<WebdavServer | AlistServer>, passwdInfo: PasswdInfo) => {
   const urlPath = new URL(state.urlAddr).pathname
-  const realFileName = convertRealName(passwdInfo.password, passwdInfo.encType, urlPath)
+  const isDir = await getFileInfo(urlPath)
 
-  const urlAddr = path.dirname(state.urlAddr) + '/' + realFileName
+  let urlAddr: string
+  if (isDir) {
+    urlAddr = state.urlAddr
+  } else {
+    const realFileName = convertRealName(passwdInfo.password, passwdInfo.encType, urlPath)
+    urlAddr = path.dirname(state.urlAddr) + '/' + realFileName
+  }
+
   logger.info(`webdav删除: ${urlAddr}`)
 
   //删除缓存
@@ -230,7 +237,7 @@ export const webdavHookMiddleware: Middleware<ProxiedState<WebdavServer | AlistS
   const encrypted = passwdInfo?.encName
 
   // 需要把目的url的ip转化为真实ip
-  if ('MOVE,DELETE'.includes(method)) {
+  if ('MOVE,COPY'.includes(method)) {
     ctx.req.headers.destination = flat(ctx.req.headers.destination).replace(state.selfHost, state.serverAddr)
   }
 
